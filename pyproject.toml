@@ -1,18 +1,21 @@
 [tool.poetry]
-name = "aiogram3-template"
+name = "salon-manager"
 version = "0.1.0"
 description = ""
 authors = ["aldi <alkin.denis@gmail.com>"]
 readme = "README.md"
-packages = [{include = "aiogram3-template"}]
 
 [tool.poetry.dependencies]
-python = "^3.11"
+python = "^3.12"
 python-dotenv = "^1.0.1"
-SQLAlchemy = "^2.0.31"
+SQLAlchemy = {extras = ["asyncio"], version = "^2.0.32"}
 alembic = "^1.13.2"
-aiogram = "^3.10.0"
+aiogram = "^3.12.0"
 pydantic-settings = "^2.2.1"
+asyncpg = "^0.29.0"
+gspread-asyncio = "^2.0.0"
+aiosqlite = "^0.20.0"
+apscheduler = "^3.10.4"
 
 
 [build-system]
