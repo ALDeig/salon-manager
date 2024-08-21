@@ -13,8 +13,8 @@ router = Router()
 
 @router.message(Command("start"), flags={"dao": True})
 async def cmd_start(msg: Message, state: FSMContext, dao: HolderDao):
+    await state.clear()
     if not await check_user(dao, msg.chat.username):
         await msg.answer(shift_texts.USER_NOT_FOUND)
         return
     await msg.answer("Меню", reply_markup=kb_user_menu())
-    await state.clear()
