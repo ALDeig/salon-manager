@@ -8,22 +8,25 @@ from aiogram.fsm.storage.memory import MemoryStorage
 
 from app.commands import set_commands
 from app.settings import settings
-from app.src.dialogs.handlers import admin, user
+from app.src.dialogs.handlers import admin, shifts, table_settings, user
 from app.src.middleware.db import DbSessionMiddleware
 from app.src.services.db.base import session_factory
+from app.src.services.scheduler import create_scheduler_tasks
 
 logger = logging.getLogger(__name__)
 
 
 def _include_routers(dp: Dispatcher) -> None:
     """Подключает роуты."""
-    dp.include_routers(user.router, admin.router)
+    dp.include_routers(user.router, admin.router, table_settings.router, shifts.router)
 
 
 def _include_filters(admins: list[int], dp: Dispatcher) -> None:
     """Подключает фильтры."""
     dp.message.filter(F.chat.type == "private")
     admin.router.message.filter(F.chat.id.in_(admins))
+    table_settings.router.message.filter(F.chat.id.in_(admins))
+    table_settings.router.callback_query.filter(F.from_user.id.in_(admins))
 
 
 def _middleware_registry(dp: Dispatcher) -> None:
@@ -52,9 +55,13 @@ async def main():
     # Установка команд для бота
     await set_commands(bot, settings.ADMINS)
 
+    scheduler = create_scheduler_tasks()
+
     try:
+        scheduler.start()
         await dp.start_polling(bot)
     finally:
+        scheduler.shutdown()
         await bot.session.close()
 
 

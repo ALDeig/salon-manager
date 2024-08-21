@@ -10,6 +10,7 @@ class Settings(BaseSettings):
 
     TELEGRAM_TOKEN: str
     ADMINS: list[int]
+    TABLE_KEY: str
     LOG_LEVEL: str
     POSTGRES_USER: str
     POSTGRES_PASSWORD: str

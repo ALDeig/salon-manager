@@ -12,6 +12,10 @@ logger = logging.getLogger(__name__)
 
 ADMIN_COMMANS = [
     BotCommand(command="start", description="Перезапустить бот"),
+    BotCommand(command="add_salon", description="Добавить салон"),
+    BotCommand(command="update_users", description="Обновить список пользователей"),
+    BotCommand(command="table_settings", description="Настройки таблицы"),
+    BotCommand(command="salons", description="Список салонов")
 ]
 USER_COMMANDS = [BotCommand(command="start", description="Перезапустить бот")]
 
