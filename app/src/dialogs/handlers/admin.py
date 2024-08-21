@@ -78,6 +78,8 @@ async def get_all_users(msg: Message, state: FSMContext, dao: HolderDao):
 @router.message(Command("salons"), flags={"dao": True})
 async def cmd_show_salons(msg: Message, dao: HolderDao):
     salons = await SalonsManager(dao).get_salons()
+    if not salons:
+        await msg.answer("Салонов нет")
     for salon in salons:
         shifts = ", ".join(salon.shifts)
         await msg.answer(
