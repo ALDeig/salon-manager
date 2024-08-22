@@ -42,7 +42,10 @@ async def update_user_list(dao: HolderDao, ranges: str):
 
 
 async def check_user(dao: HolderDao, username: str | None) -> bool:
-    user = await dao.user_dao.find_one_or_none(username=str(username))
+    if username is None:
+        logger.warning("User dont have username: %s", username)
+        return False
+    user = await dao.user_dao.find_one_or_none(username=username)
     if user is None:
         logger.warning("User not found: %s", username)
         return False
