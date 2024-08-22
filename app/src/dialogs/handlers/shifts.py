@@ -90,6 +90,7 @@ async def btn_show_my_shifts(call: CallbackQuery, msg: Message, dao: HolderDao):
     shifts = await ShiftManager(cast(str, call.from_user.username), dao).get_my_shifts()
     if not shifts:
         await msg.answer("Смен нет")
+        return
     text = ""
     for day, shift in shifts.items():
         text += f"<b>{day}</b>\n{shift.salon}: {shift.time}\n\n"
