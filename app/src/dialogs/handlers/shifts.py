@@ -88,14 +88,16 @@ async def btn_show_my_shifts(call: CallbackQuery, msg: Message, dao: HolderDao):
         return
     await msg.answer("Собираю данные")
     shifts = await ShiftManager(cast(str, call.from_user.username), dao).get_my_shifts()
-    print(shifts)
     if not shifts:
         await msg.answer("Смен нет")
+    text = ""
     for day, shift in shifts.items():
-        await msg.answer(
-            f"{day}\n{shift.salon}: {shift.time}",
-            reply_markup=kb_shift_remove(shift.row, shift.col, shift.label),
-        )
+        text += f"<b>{day}</b>\n{shift.salon}: {shift.time}\n\n"
+        # await msg.answer(
+        #     f"{day}\n{shift.salon}: {shift.time}",
+        #     reply_markup=kb_shift_remove(shift.row, shift.col, shift.label),
+        # )
+    await msg.answer(text)
 
 
 @router.callback_query(
