@@ -1,3 +1,4 @@
+import logging
 from collections import Counter
 
 from app.src.services.db.base import session_factory
@@ -7,6 +8,8 @@ from app.src.services.exceptions import BadRangeError, NotUniqueUsersError
 from app.src.services.gsheet.creds import get_worksheet
 from app.src.services.gsheet.sheet import GSheet
 from app.src.services.table_settings import TableSettings
+
+logger = logging.getLogger(__name__)
 
 # async def save_user(
 #     session: AsyncSession, user_id: int, full_name: str, username: str | None
@@ -40,7 +43,11 @@ async def update_user_list(dao: HolderDao, ranges: str):
 
 async def check_user(dao: HolderDao, username: str | None) -> bool:
     user = await dao.user_dao.find_one_or_none(username=str(username))
-    return bool(user)
+    if user is None:
+        logger.warning("User not found: %s", username)
+        return False
+    logger.info("User found: %s - %s", username, bool(user))
+    return True
 
 
 async def clear_user_cancelled():
