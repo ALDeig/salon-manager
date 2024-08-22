@@ -19,4 +19,4 @@ agcm = gspread_asyncio.AsyncioGspreadClientManager(get_creds)
 async def get_worksheet() -> gspread_asyncio.AsyncioGspreadWorksheet:
     agc = await agcm.authorize()
     spreadsheet = await agc.open_by_key(settings.TABLE_KEY)
-    return await spreadsheet.get_worksheet(1)
+    return await spreadsheet.worksheet("ГРАФИИИК")
