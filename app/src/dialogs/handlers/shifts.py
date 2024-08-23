@@ -117,10 +117,11 @@ async def btn_shift_remove(call: CallbackQuery, msg: Message, dao: HolderDao):
 )
 async def btn_all_shifts(call: CallbackQuery, msg: Message, dao: HolderDao):
     await call.answer()
+    await msg.answer("Собираю данные")
     shift_manager = ShiftManager(cast(str, call.from_user.username), dao)
     shifts = await shift_manager.get_all_shifts()
-    texts = shift_texts.all_shifts(shifts)
-    if not texts:
+    text = shift_texts.all_shifts(shifts)
+    if not text:
         await msg.answer("Смен нет")
-    for text in texts:
-        await msg.answer(text)
+        return
+    await msg.answer(text)

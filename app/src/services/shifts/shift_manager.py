@@ -5,7 +5,10 @@ from dataclasses import dataclass
 
 from gspread import Cell
 
-from app.src.services.dates import get_dates_next_week, get_days_month
+from app.src.services.dates import (
+    get_days_from_today_to_next_week,
+    get_days_month,
+)
 from app.src.services.db.dao.holder import HolderDao
 from app.src.services.db.models import Salon
 from app.src.services.exceptions import (
@@ -104,7 +107,7 @@ class ShiftManager:
             value=TableIndexes.USERS_END
         )
         salons = await self._dao.salon_dao.find_all_by_order()
-        days = get_dates_next_week()
+        days = get_days_from_today_to_next_week()
         first_cell = await gs.find_cell(days[0])
         last_cell = await gs.get_cell_by_coordinates(
             user_end_row.row, get_last_column_week(first_cell.col, len(salons))

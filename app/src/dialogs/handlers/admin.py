@@ -108,10 +108,11 @@ async def btn_remove_salon(call: CallbackQuery, msg: Message, dao: HolderDao):
 
 @router.message(Command("all_shifts"), flags={"dao": True})
 async def btn_all_shifts(msg: Message, dao: HolderDao):
+    await msg.answer("Собираю данные")
     shift_manager = ShiftManager(cast(str, msg.chat.username), dao)
     shifts = await shift_manager.get_all_shifts()
-    texts = shift_texts.all_shifts(shifts)
-    if not texts:
+    text = shift_texts.all_shifts(shifts)
+    if not text:
         await msg.answer("Смен нет")
-    for text in texts:
-        await msg.answer(text)
+        return
+    await msg.answer(text)

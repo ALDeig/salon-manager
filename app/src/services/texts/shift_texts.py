@@ -38,8 +38,8 @@ def all_shifts_2(shifts: dict[str, dict[str, dict[str, int]]]) -> list[str]:
 # }
 
 
-def all_shifts(shifts: dict[str, dict[str, dict[str, int]]]) -> list[str]:
-    texts = []
+def all_shifts(shifts: dict[str, dict[str, dict[str, int]]]) -> str:
+    texts = ""
     for day, salons in shifts.items():
         salons_text = "".join([f"{salon:<10}" for salon in salons])
         salon_shifts = [
@@ -50,7 +50,7 @@ def all_shifts(shifts: dict[str, dict[str, dict[str, int]]]) -> list[str]:
             row = "".join(s)
             salons_text += f"\n{row}"
 
-        texts.append(f"<b>{day}</b>\n<pre>{salons_text}</pre>")
+        texts += f"<b>{day}</b>\n<pre>{salons_text}</pre>\n\n"
     return texts
 
 

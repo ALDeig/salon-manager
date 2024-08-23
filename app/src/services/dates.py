@@ -13,6 +13,15 @@ def get_monday_next_week() -> date:
     return next_week - timedelta(days=next_week.weekday())
 
 
+def get_days_from_today_to_next_week() -> list[str]:
+    today = date.today()  # noqa: DTZ011
+    next_week = get_monday_next_week()
+    days_amount = (next_week + timedelta(7) - today).days
+    return [
+        (today + timedelta(days=cnt)).strftime("%d.%m") for cnt in range(days_amount)
+    ]
+
+
 def get_days_month() -> list[str]:
     """Возвращает список дат в текущем месяце."""
     today = date.today()  # noqa: DTZ011
