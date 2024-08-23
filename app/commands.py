@@ -15,7 +15,8 @@ ADMIN_COMMANS = [
     BotCommand(command="add_salon", description="Добавить салон"),
     BotCommand(command="update_users", description="Обновить список пользователей"),
     BotCommand(command="table_settings", description="Настройки таблицы"),
-    BotCommand(command="salons", description="Список салонов")
+    BotCommand(command="salons", description="Список салонов"),
+    BotCommand(command="all_shifts", description="Все смены")
 ]
 USER_COMMANDS = [BotCommand(command="start", description="Перезапустить бот")]
 

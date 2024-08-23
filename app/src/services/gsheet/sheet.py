@@ -2,7 +2,7 @@ from dataclasses import dataclass
 
 import gspread_asyncio
 from gspread import Cell
-from gspread.utils import Dimension
+from gspread.utils import Dimension, ValueRenderOption
 
 from app.src.services.gsheet.utils import find_col_name_by_address
 
@@ -34,7 +34,9 @@ class GSheet:
 
     async def get_values_by_columns(self, range_name: str) -> list[list[str]]:
         return await self._ws.get_values(
-            range_name=range_name, major_dimension=Dimension.cols
+            range_name=range_name,
+            major_dimension=Dimension.cols,
+            value_render_option=ValueRenderOption.formatted,
         )
 
     async def get_cells(self, *args, **kwargs) -> list[Cell]:  # noqa: ANN002

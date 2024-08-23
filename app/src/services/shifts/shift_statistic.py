@@ -10,7 +10,11 @@ from app.src.services.db.dao.holder import HolderDao
 from app.src.services.db.models import Salon, TableIndex
 from app.src.services.gsheet.creds import get_worksheet
 from app.src.services.gsheet.sheet import GSheet
-from app.src.services.shifts.consts import COLS_ON_SALON, DAYS_ON_WEEK
+from app.src.services.shifts.consts import (
+    COLS_ON_SALON,
+    TableIndexes,
+    get_last_column_week,
+)
 
 
 @dataclass
@@ -134,15 +138,15 @@ class ShiftStatistic:
         first_cell = await self._gs.find_cell(day)
         last_cell = await self._gs.get_cell_by_coordinates(
             row=1,
-            col=self._get_last_column_week(first_cell.col, amount_salons),
+            col=get_last_column_week(first_cell.col, amount_salons),
         )
         return Indexes(
-            await self._dao.table_index_dao.find_one(value="users_start"),
-            await self._dao.table_index_dao.find_one(value="shifts_on_week"),
-            await self._dao.table_index_dao.find_one(value="shifts_on_month"),
-            await self._dao.table_index_dao.find_one(value="total_shifts"),
-            await self._dao.table_index_dao.find_one(value="penalties_down"),
-            await self._dao.table_index_dao.find_one(value="percent"),
+            await self._dao.table_index_dao.find_one(value=TableIndexes.USERS_START),
+            await self._dao.table_index_dao.find_one(value=TableIndexes.SHIFTS_WEEK),
+            await self._dao.table_index_dao.find_one(value=TableIndexes.SHIFTS_MONTH),
+            await self._dao.table_index_dao.find_one(value=TableIndexes.TOTAL_SHIFTS),
+            await self._dao.table_index_dao.find_one(value=TableIndexes.PENALTIES_DOWN),
+            await self._dao.table_index_dao.find_one(value=TableIndexes.PERCENT),
             first_cell.col_name,
             last_cell.col_name,
         )
@@ -184,11 +188,6 @@ class ShiftStatistic:
             f"{indexes.first_shift_col}{first_row}:{indexes.last_shift_col}{last_row}"
         )
         return Data(week[0], month[0], total[0], penalties[0], shifts)
-
-    @staticmethod
-    def _get_last_column_week(mondey_col: int, salon_amount: int) -> int:
-        """Возвращает номер последний колонки дня с учетом количества салонов."""
-        return (mondey_col + salon_amount * COLS_ON_SALON * DAYS_ON_WEEK) - 1
 
 
 class UpPercent:
@@ -251,7 +250,7 @@ async def clear_column(value: str):
         value_range = await dao.table_index_dao.find_one_or_none(value=value)
         if not value_range:
             return
-        users_start = await dao.table_index_dao.find_one(value="users_start")
+        users_start = await dao.table_index_dao.find_one(value=TableIndexes.USERS_START)
         users = await dao.user_dao.find_all()
         cells = [
             Cell(users_start.row + i, value_range.col_int, value="")

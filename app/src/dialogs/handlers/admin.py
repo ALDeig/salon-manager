@@ -1,3 +1,5 @@
+from typing import cast
+
 from aiogram import F, Router
 from aiogram.filters import Command, StateFilter
 from aiogram.fsm.context import FSMContext
@@ -12,7 +14,8 @@ from app.src.services.exceptions import (
     NotUniqueUsersError,
 )
 from app.src.services.salons import SalonsManager
-from app.src.services.texts import admin_texts
+from app.src.services.shifts.shift_manager import ShiftManager
+from app.src.services.texts import admin_texts, shift_texts
 from app.src.services.user import update_user_list
 
 router = Router()
@@ -101,3 +104,14 @@ async def btn_remove_salon(call: CallbackQuery, msg: Message, dao: HolderDao):
         await msg.answer("У вас уже две отмены.")
     else:
         await msg.answer("Готово")
+
+
+@router.message(Command("all_shifts"), flags={"dao": True})
+async def btn_all_shifts(msg: Message, dao: HolderDao):
+    shift_manager = ShiftManager(cast(str, msg.chat.username), dao)
+    shifts = await shift_manager.get_all_shifts()
+    texts = shift_texts.all_shifts(shifts)
+    if not texts:
+        await msg.answer("Смен нет")
+    for text in texts:
+        await msg.answer(text)

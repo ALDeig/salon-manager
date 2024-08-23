@@ -61,7 +61,8 @@ async def main():
         scheduler.start()
         await dp.start_polling(bot)
     finally:
-        scheduler.shutdown()
+        scheduler.shutdown(wait=False)
+        # scheduler.shutdown()
         await bot.session.close()
 
 

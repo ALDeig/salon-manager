@@ -1,10 +1,11 @@
 import logging
+from collections import defaultdict
 from collections.abc import Sequence
 from dataclasses import dataclass
 
 from gspread import Cell
 
-from app.src.services.dates import get_days_month
+from app.src.services.dates import get_dates_next_week, get_days_month
 from app.src.services.db.dao.holder import HolderDao
 from app.src.services.db.models import Salon
 from app.src.services.exceptions import (
@@ -14,7 +15,13 @@ from app.src.services.exceptions import (
 )
 from app.src.services.gsheet.creds import get_worksheet
 from app.src.services.gsheet.sheet import CellData, GSheet
-from app.src.services.shifts.consts import COLORS, COLS_ON_SALON
+from app.src.services.shifts.consts import (
+    COLORS,
+    COLS_ON_SALON,
+    TableIndexes,
+    get_last_column_day,
+    get_last_column_week,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -49,7 +56,7 @@ class ShiftManager:
         salons = await self._dao.salon_dao.find_all_by_order()
         last_cell = await gs.get_cell_by_coordinates(
             row=user_cell.row,
-            col=self._get_last_column_day(day_cell.col, len(salons)),
+            col=get_last_column_day(day_cell.col, len(salons)),
         )
         user_shifts = await gs.get_values_by_rows(
             f"{day_cell.col_name}{user_cell.row}:{last_cell.label}"
@@ -87,10 +94,49 @@ class ShiftManager:
             {"cancellations": user.cancellations + 1}, username=self._username
         )
 
+    async def get_all_shifts(self) -> dict[str, dict[str, dict[str, int]]]:
+        """Возвращает словарь с днями, в дне салоны, в салоне смены и их кол-во."""
+        gs = GSheet(await get_worksheet())
+        user_start_row = await self._dao.table_index_dao.find_one(
+            value=TableIndexes.USERS_START
+        )
+        user_end_row = await self._dao.table_index_dao.find_one(
+            value=TableIndexes.USERS_END
+        )
+        salons = await self._dao.salon_dao.find_all_by_order()
+        days = get_dates_next_week()
+        first_cell = await gs.find_cell(days[0])
+        last_cell = await gs.get_cell_by_coordinates(
+            user_end_row.row, get_last_column_week(first_cell.col, len(salons))
+        )
+        shifts = await gs.get_values_by_columns(
+            f"{first_cell.col_name}{user_start_row.row}:{last_cell.label}"
+        )
+        return self._get_all_shifts(shifts, days, salons)
+
+    def _get_all_shifts(
+        self, shifts: list[list[str]], days: list[str], salons: Sequence[Salon]
+    ) -> dict[str, dict[str, dict[str, int]]]:
+        """Возвращает словарь с днями, в дне салоны, в салоне смены и их кол-во."""
+        result = defaultdict(dict)
+        day_idx = 0
+        for day in days:
+            for idx, salon in enumerate(salons):
+                try:
+                    col = shifts[day_idx + idx * COLS_ON_SALON]
+                except IndexError:
+                    continue
+                result[day][salon.name] = self._count_shifts_in_col(col)
+            day_idx += len(salons) * COLS_ON_SALON
+        return result
+
     @staticmethod
-    def _get_last_column_day(mondey_col: int, salon_amount: int) -> int:
-        """Возвращает номер последний колонки дня с учетом количества салонов."""
-        return (mondey_col + salon_amount * COLS_ON_SALON) - 1
+    def _count_shifts_in_col(col: list[str]) -> dict[str, int]:
+        result = defaultdict(int)
+        for row in col:
+            if row:
+                result[row] += 1
+        return result
 
     @staticmethod
     def _get_shift_salon_column(salon: str, salons: Sequence[Salon]) -> int:

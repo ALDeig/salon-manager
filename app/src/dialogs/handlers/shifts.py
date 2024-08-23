@@ -4,7 +4,7 @@ from aiogram import F, Router
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, Message
 
-from app.src.dialogs.keyboards.shift import kb_select_item, kb_shift_remove
+from app.src.dialogs.keyboards.shift import kb_select_item
 from app.src.dialogs.states import ShiftEntry
 from app.src.services.dates import get_dates_next_week, write_is_avalibale
 from app.src.services.db.dao.holder import HolderDao
@@ -67,15 +67,16 @@ async def btn_select_time(
     if call.data is None:
         return
     await call.answer()
+    await msg.answer("Записываю смену...")
     data = await state.get_data()
+    salon, day, shift_time = data["salon"], data["day"], call.data
+    shift_manager = ShiftManager(cast(str, call.from_user.username), dao)
     try:
-        await ShiftManager(cast(str, call.from_user.username), dao).add_entry(
-            data["salon"], data["day"], call.data
-        )
+        await shift_manager.add_entry(salon, day, shift_time)
     except ShiftIsExistError:
         await msg.answer(shift_texts.SHIFT_IS_EXIST)
     else:
-        await msg.answer(shift_texts.SHIFT_IS_WRITE)
+        await msg.answer(shift_texts.shift_is_write(day, salon, shift_time))
     await state.clear()
 
 
@@ -94,10 +95,6 @@ async def btn_show_my_shifts(call: CallbackQuery, msg: Message, dao: HolderDao):
     text = ""
     for day, shift in shifts.items():
         text += f"<b>{day}</b>\n{shift.salon}: {shift.time}\n\n"
-        # await msg.answer(
-        #     f"{day}\n{shift.salon}: {shift.time}",
-        #     reply_markup=kb_shift_remove(shift.row, shift.col, shift.label),
-        # )
     await msg.answer(text)
 
 
@@ -113,3 +110,17 @@ async def btn_shift_remove(call: CallbackQuery, msg: Message, dao: HolderDao):
         int(row), int(col), label
     )
     await msg.answer(shift_texts.SHIFT_IS_REMOVE)
+
+
+@router.callback_query(
+    F.data == "all_shifts", F.message.as_("msg"), flags={"dao": True}
+)
+async def btn_all_shifts(call: CallbackQuery, msg: Message, dao: HolderDao):
+    await call.answer()
+    shift_manager = ShiftManager(cast(str, call.from_user.username), dao)
+    shifts = await shift_manager.get_all_shifts()
+    texts = shift_texts.all_shifts(shifts)
+    if not texts:
+        await msg.answer("Смен нет")
+    for text in texts:
+        await msg.answer(text)

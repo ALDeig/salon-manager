@@ -18,7 +18,7 @@ class TableSettings:
         return await self._dao.table_index_dao.find_all()
 
     async def change_setting(self, value: str, label: str) -> None:
-        if label.isalnum():
+        if label.isalpha():
             label += "1"
         row, col, col_name = self._get_indexes_by_label(label)
         await self._dao.table_index_dao.update(
