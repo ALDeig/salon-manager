@@ -1,7 +1,13 @@
+import logging
 from collections.abc import Sequence
+
+from sqlalchemy.exc import NoResultFound
 
 from app.src.services.db.dao.holder import HolderDao
 from app.src.services.db.models import Salon
+from app.src.services.exceptions import SalonNotFoundError
+
+logger = logging.getLogger(__name__)
 
 
 class SalonsManager:
@@ -17,7 +23,12 @@ class SalonsManager:
         await self._dao.salon_dao.add(Salon(name=name, shifts=shifts, order=index))
 
     async def get_salon(self, name: str) -> Salon:
-        return await self._dao.salon_dao.find_one(name=name)
+        try:
+            salon = await self._dao.salon_dao.find_one(name=name)
+        except NoResultFound as er:
+            logger.error("Salon %s not found", name)  # noqa: TRY400
+            raise SalonNotFoundError from er
+        return salon
 
     async def get_salon_times(self, name: str) -> list[str]:
         salon = await self.get_salon(name)

@@ -1,3 +1,7 @@
+class SalonNotFoundError(Exception):
+    """Салон не найден."""
+
+
 class WritingShiftError(Exception):
     """Невозможно записать смену."""
 

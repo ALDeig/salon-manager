@@ -8,6 +8,7 @@ SHIFT_IS_REMOVE = "Смена была удалена"
 SHIFT_IS_NOT_AVALIBALE = (
     "Выбрать смену нельзя, смены назначаются только по пятницам и субботам"
 )
+SALON_TIMES_ERROR = "Не удалось получить данные о времени смен"
 
 
 def shift_is_write(day: str, salon: str, shift_time: str) -> str:

@@ -8,7 +8,11 @@ from app.src.dialogs.keyboards.shift import kb_select_item
 from app.src.dialogs.states import ShiftEntry
 from app.src.services.dates import get_dates_next_week, write_is_avalibale
 from app.src.services.db.dao.holder import HolderDao
-from app.src.services.exceptions import ShiftIsExistError, WritingShiftError
+from app.src.services.exceptions import (
+    SalonNotFoundError,
+    ShiftIsExistError,
+    WritingShiftError,
+)
 from app.src.services.salons import SalonsManager
 from app.src.services.shifts.shift_manager import ShiftManager
 from app.src.services.texts import dates_text, salon_texts, shift_texts
@@ -54,8 +58,13 @@ async def btn_select_day(
     await call.answer()
     data = await state.get_data()
     await state.update_data(day=call.data)
-    times = await SalonsManager(dao).get_salon_times(data["salon"])
-    await msg.answer(dates_text.select_time, reply_markup=kb_select_item(times))
+    try:
+        salon = await SalonsManager(dao).get_salon(data["salon"])
+    except SalonNotFoundError:
+        await msg.answer(shift_texts.SALON_TIMES_ERROR)
+        await state.clear()
+        return
+    await msg.answer(dates_text.select_time, reply_markup=kb_select_item(salon.shifts))
     await state.set_state(ShiftEntry.time)
 
 
