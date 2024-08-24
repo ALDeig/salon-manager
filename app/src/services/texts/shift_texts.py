@@ -3,6 +3,7 @@ from itertools import zip_longest
 USER_NOT_FOUND = "Вы не являетесь пользователем"
 SHIFT_IS_WRITE = "Смена записана.\n<b>{day}</b>\n{salon}: {time}"
 SHIFT_IS_EXIST = "У вас есть смена в этот день"
+SHIFT_WRITE_ERROR = "Неудалось записать смену"
 SHIFT_IS_REMOVE = "Смена была удалена"
 SHIFT_IS_NOT_AVALIBALE = (
     "Выбрать смену нельзя, смены назначаются только по пятницам и субботам"

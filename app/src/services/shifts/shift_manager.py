@@ -13,8 +13,10 @@ from app.src.services.db.dao.holder import HolderDao
 from app.src.services.db.models import Salon
 from app.src.services.exceptions import (
     CancellationNotAvailableError,
+    CellNotFoundError,
     ShiftIsExistError,
     UserNotFoundError,
+    WritingShiftError,
 )
 from app.src.services.gsheet.creds import get_worksheet
 from app.src.services.gsheet.sheet import CellData, GSheet
@@ -50,12 +52,12 @@ class ShiftManager:
 
     async def add_entry(self, salon: str, day: str, time: str) -> None:
         """Добавляет смену в таблицу."""
-        user = await self._dao.user_dao.find_one_or_none(username=self._username)
-        if user is None:
-            raise UserNotFoundError
         gs = GSheet(await get_worksheet())
-        user_cell = await gs.find_cell(f"@{user.username}")
-        day_cell = await gs.find_cell(day)
+        user_cell = await gs.find_cell(f"@{self._username}")
+        try:
+            day_cell = await gs.find_cell(day)
+        except CellNotFoundError as er:
+            raise WritingShiftError from er
         salons = await self._dao.salon_dao.find_all_by_order()
         last_cell = await gs.get_cell_by_coordinates(
             row=user_cell.row,

@@ -8,7 +8,7 @@ from app.src.dialogs.keyboards.shift import kb_select_item
 from app.src.dialogs.states import ShiftEntry
 from app.src.services.dates import get_dates_next_week, write_is_avalibale
 from app.src.services.db.dao.holder import HolderDao
-from app.src.services.exceptions import ShiftIsExistError
+from app.src.services.exceptions import ShiftIsExistError, WritingShiftError
 from app.src.services.salons import SalonsManager
 from app.src.services.shifts.shift_manager import ShiftManager
 from app.src.services.texts import dates_text, salon_texts, shift_texts
@@ -75,6 +75,8 @@ async def btn_select_time(
         await shift_manager.add_entry(salon, day, shift_time)
     except ShiftIsExistError:
         await msg.answer(shift_texts.SHIFT_IS_EXIST)
+    except WritingShiftError:
+        await msg.answer(shift_texts.SHIFT_WRITE_ERROR)
     else:
         await msg.answer(shift_texts.shift_is_write(day, salon, shift_time))
     await state.clear()

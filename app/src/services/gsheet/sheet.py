@@ -1,10 +1,14 @@
+import logging
 from dataclasses import dataclass
 
 import gspread_asyncio
 from gspread import Cell
 from gspread.utils import Dimension, ValueRenderOption
 
+from app.src.services.exceptions import CellNotFoundError
 from app.src.services.gsheet.utils import find_col_name_by_address
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -44,6 +48,9 @@ class GSheet:
 
     async def find_cell(self, value: str) -> CellData:
         cell = await self._ws.find(value)
+        if cell is None:
+            logger.error("Cell %s not found", value)
+            raise CellNotFoundError
         return CellData(row=cell.row, col=cell.col, label=cell.address)
 
     async def get_cell_by_coordinates(self, row: int, col: int) -> CellData:

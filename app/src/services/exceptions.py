@@ -1,3 +1,11 @@
+class WritingShiftError(Exception):
+    """Невозможно записать смену."""
+
+
+class CellNotFoundError(Exception):
+    """Ячейка не найдена."""
+
+
 class CancellationNotAvailableError(Exception):
     """Смена не может быть отменена."""
 
