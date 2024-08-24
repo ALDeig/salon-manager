@@ -35,7 +35,7 @@ async def update_user_list(dao: HolderDao, ranges: str):
 
     await dao.user_dao.delete()
     for user in users:
-        await dao.user_dao.add(User(username=user.replace("@", "")))
+        await dao.user_dao.add(User(username=user.replace("@", "").strip()))
     settings = TableSettings(dao)
     await settings.change_setting("users_start", users_start)
     await settings.change_setting("users_end", users_end)
