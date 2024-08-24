@@ -79,7 +79,8 @@ async def get_all_users(msg: Message, state: FSMContext, dao: HolderDao):
 
 
 @router.message(Command("salons"), flags={"dao": True})
-async def cmd_show_salons(msg: Message, dao: HolderDao):
+async def cmd_show_salons(msg: Message, dao: HolderDao, state: FSMContext):
+    await state.clear()
     salons = await SalonsManager(dao).get_salons()
     if not salons:
         await msg.answer("Салонов нет")
@@ -107,8 +108,9 @@ async def btn_remove_salon(call: CallbackQuery, msg: Message, dao: HolderDao):
 
 
 @router.message(Command("all_shifts"), flags={"dao": True})
-async def btn_all_shifts(msg: Message, dao: HolderDao):
+async def btn_all_shifts(msg: Message, dao: HolderDao, state: FSMContext):
     await msg.answer("Собираю данные")
+    await state.clear()
     shift_manager = ShiftManager(cast(str, msg.chat.username), dao)
     shifts = await shift_manager.get_all_shifts()
     text = shift_texts.all_shifts(shifts)

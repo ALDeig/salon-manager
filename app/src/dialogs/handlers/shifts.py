@@ -27,6 +27,7 @@ async def btn_add_shift(
 ):
     """Начинает запись смены. Делает запрос на выбор салона."""
     await call.answer()
+    await state.clear()
     if not await check_user(dao, call.from_user.username):
         await msg.answer(shift_texts.USER_NOT_FOUND)
         return
@@ -92,9 +93,12 @@ async def btn_select_time(
 
 
 @router.callback_query(F.data == "my_shifts", F.message.as_("msg"), flags={"dao": True})
-async def btn_show_my_shifts(call: CallbackQuery, msg: Message, dao: HolderDao):
+async def btn_show_my_shifts(
+    call: CallbackQuery, msg: Message, dao: HolderDao, state: FSMContext
+):
     """Кнопка показа своих смен."""
     await call.answer()
+    await state.clear()
     if not await check_user(dao, call.from_user.username):
         await msg.answer(shift_texts.USER_NOT_FOUND)
         return
