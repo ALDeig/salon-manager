@@ -3,7 +3,7 @@ from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from app.src.services.shifts.shift_statistic import clear_column, update_statistic
 from app.src.services.user import clear_user_cancelled
 
-scheduler = AsyncIOScheduler(timezone="Europe/Samara")
+scheduler = AsyncIOScheduler(timezone="Europe/Moscow")
 
 
 def create_scheduler_tasks():
