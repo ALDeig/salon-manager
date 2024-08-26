@@ -66,7 +66,10 @@ class ShiftStatistic:
         data = await self._get_data(indexes, len(users))
         cells = []
         for index in range(len(users)):
-            shifts = self._user_shifts(data.shifts[index], salons)
+            try:
+                shifts = self._user_shifts(data.shifts[index], salons)
+            except IndexError:
+                break
             if not shifts:
                 continue
             shifts_amount = len(shifts)
