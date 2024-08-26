@@ -1,3 +1,10 @@
+"""Commands for admin.
+
+add_salon
+update_users
+all_shifts
+"""
+
 from typing import cast
 
 from aiogram import F, Router

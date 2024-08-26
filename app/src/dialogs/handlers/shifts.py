@@ -1,3 +1,11 @@
+"""Commands for shifts.
+
+btn add_shift
+btn my_shifts
+btn all_shifts
+"""
+
+import logging
 from typing import cast
 
 from aiogram import F, Router
@@ -5,6 +13,7 @@ from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, Message
 
 from app.src.dialogs.keyboards.shift import kb_select_item
+from app.src.dialogs.keyboards.user import kb_user_menu
 from app.src.dialogs.states import ShiftEntry
 from app.src.services.dates import get_dates_next_week, write_is_avalibale
 from app.src.services.db.dao.holder import HolderDao
@@ -18,6 +27,7 @@ from app.src.services.shifts.shift_manager import ShiftManager
 from app.src.services.texts import dates_text, salon_texts, shift_texts
 from app.src.services.user import check_user
 
+logger = logging.getLogger(__name__)
 router = Router()
 
 
@@ -34,6 +44,10 @@ async def btn_add_shift(
     if not write_is_avalibale():
         await msg.answer(shift_texts.SHIFT_IS_NOT_AVALIBALE)
         return
+    try:
+        await msg.delete_reply_markup()
+    except Exception as er:
+        logger.warning(er)
     salons = await SalonsManager(dao).get_salons()
     text = salon_texts.select_salon
     kb = kb_select_item([salon.name for salon in salons])
@@ -90,6 +104,7 @@ async def btn_select_time(
     else:
         await msg.answer(shift_texts.shift_is_write(day, salon, shift_time))
     await state.clear()
+    await msg.answer("Меню", reply_markup=kb_user_menu())
 
 
 @router.callback_query(F.data == "my_shifts", F.message.as_("msg"), flags={"dao": True})
@@ -102,15 +117,20 @@ async def btn_show_my_shifts(
     if not await check_user(dao, call.from_user.username):
         await msg.answer(shift_texts.USER_NOT_FOUND)
         return
+    try:
+        await msg.delete_reply_markup()
+    except Exception as er:
+        logger.warning(er)
     await msg.answer("Собираю данные")
     shifts = await ShiftManager(cast(str, call.from_user.username), dao).get_my_shifts()
     if not shifts:
         await msg.answer("Смен нет")
-        return
-    text = ""
-    for day, shift in shifts.items():
-        text += f"<b>{day}</b>\n{shift.salon}: {shift.time}\n\n"
-    await msg.answer(text)
+    else:
+        text = ""
+        for day, shift in shifts.items():
+            text += f"<b>{day}</b>\n{shift.salon}: {shift.time}\n\n"
+        await msg.answer(text)
+    await msg.answer("Меню", reply_markup=kb_user_menu())
 
 
 @router.callback_query(
@@ -132,11 +152,16 @@ async def btn_shift_remove(call: CallbackQuery, msg: Message, dao: HolderDao):
 )
 async def btn_all_shifts(call: CallbackQuery, msg: Message, dao: HolderDao):
     await call.answer()
+    try:
+        await msg.delete_reply_markup()
+    except Exception as er:
+        logger.warning(er)
     await msg.answer("Собираю данные")
     shift_manager = ShiftManager(cast(str, call.from_user.username), dao)
     shifts = await shift_manager.get_all_shifts()
     text = shift_texts.all_shifts(shifts)
     if not text:
         await msg.answer("Смен нет")
-        return
-    await msg.answer(text)
+    else:
+        await msg.answer(text)
+    await msg.answer("Меню", reply_markup=kb_user_menu())

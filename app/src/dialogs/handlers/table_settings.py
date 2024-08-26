@@ -1,3 +1,9 @@
+"""Commands for table_settings.
+
+table_settings
+btn change_setting
+"""
+
 from aiogram import F, Router
 from aiogram.filters import Command, StateFilter
 from aiogram.fsm.context import FSMContext
