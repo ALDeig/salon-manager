@@ -7,6 +7,12 @@ def get_dates_next_week() -> list[str]:
     return [(next_monday + timedelta(days=cnt)).strftime("%d.%m") for cnt in range(7)]
 
 
+def get_dates_current_week() -> list[str]:
+    """Возвращает список дат текущей недели."""
+    monday = get_mondey_current_week()
+    return [(monday + timedelta(days=cnt)).strftime("%d.%m") for cnt in range(7)]
+
+
 def get_monday_next_week() -> date:
     """Находит число следующего понедельника и возвращает его."""
     next_week = date.today() + timedelta(days=7)  # noqa: DTZ011
@@ -34,3 +40,9 @@ def write_is_avalibale() -> bool:
     """
     week_day = date.today().weekday()  # noqa: DTZ011
     return week_day in {4, 5}
+
+
+def get_mondey_current_week() -> date:
+    """Возвращает дату понедельника текущей недели."""
+    today = date.today()  # noqa: DTZ011
+    return today - timedelta(days=today.weekday())

@@ -4,7 +4,7 @@ from dataclasses import dataclass
 
 from gspread import Cell
 
-from app.src.services.dates import get_dates_next_week
+from app.src.services.dates import get_dates_current_week
 from app.src.services.db.base import session_factory
 from app.src.services.db.dao.holder import HolderDao
 from app.src.services.db.models import Salon, TableIndex
@@ -57,7 +57,7 @@ class ShiftStatistic:
     def __init__(self, dao: HolderDao, gs: GSheet) -> None:
         self._dao = dao
         self._gs = gs
-        self._days = get_dates_next_week()
+        self._days = get_dates_current_week()
 
     async def update_statistic(self):
         users = await self._dao.user_dao.find_all()
