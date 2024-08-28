@@ -25,7 +25,6 @@ from app.src.services.shifts.consts import (
     COLS_ON_SALON,
     TableIndexes,
     get_last_column_day,
-    get_last_column_week,
 )
 
 logger = logging.getLogger(__name__)
@@ -111,8 +110,11 @@ class ShiftManager:
         salons = await self._dao.salon_dao.find_all_by_order()
         days = get_days_from_today_to_next_week()
         first_cell = await gs.find_cell(days[0])
+        # last_cell = await gs.get_cell_by_coordinates(
+        #     user_end_row.row, get_last_column_week(first_cell.col, len(salons))
+        # )
         last_cell = await gs.get_cell_by_coordinates(
-            user_end_row.row, get_last_column_week(first_cell.col, len(salons))
+            user_end_row.row, gs.col_count
         )
         shifts = await gs.get_values_by_columns(
             f"{first_cell.col_name}{user_start_row.row}:{last_cell.label}"
