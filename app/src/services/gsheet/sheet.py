@@ -31,6 +31,14 @@ class GSheet:
     def __init__(self, ws: gspread_asyncio.AsyncioGspreadWorksheet) -> None:
         self._ws = ws
 
+    @property
+    def col_count(self) -> int:
+        return self._ws.col_count
+
+    @property
+    def row_count(self) -> int:
+        return self._ws.row_count
+
     async def get_values_by_rows(self, range_name: str) -> list[list[str]]:
         return await self._ws.get_values(
             range_name=range_name, major_dimension=Dimension.rows
@@ -51,6 +59,10 @@ class GSheet:
         if cell is None:
             logger.error("Cell %s not found", value)
             raise CellNotFoundError
+        return CellData(row=cell.row, col=cell.col, label=cell.address)
+
+    async def get_cell_by_coordinates1(self, row: int, col: int) -> CellData:
+        cell = await self._ws.cell(row, col)
         return CellData(row=cell.row, col=cell.col, label=cell.address)
 
     async def get_cell_by_coordinates(self, row: int, col: int) -> CellData:
