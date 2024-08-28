@@ -34,6 +34,7 @@ class Data:
     month: list[str]
     total: list[str]
     penalties: list[str]
+    final_percent: list[str]
     shifts: list[list[str]]
 
 
@@ -47,6 +48,7 @@ class Indexes:
     total_cell: TableIndex
     penalties: TableIndex
     percent: TableIndex
+    final_percent: TableIndex
     first_shift_col: str
     last_shift_col: str
 
@@ -72,53 +74,62 @@ class ShiftStatistic:
                 break
             if not shifts:
                 continue
-            shifts_amount = len(shifts)
-            user_cells = [
-                self._create_cell_amount_shifts(
-                    indexes.first_user_cell.row + index,
-                    indexes.week_cell.col_int,
-                    data.week,
-                    index,
-                    shifts_amount,
-                ),
-                self._create_cell_amount_shifts(
-                    indexes.first_user_cell.row + index,
-                    indexes.month_cell.col_int,
-                    data.month,
-                    index,
-                    shifts_amount,
-                ),
-                self._create_cell_amount_shifts(
-                    indexes.first_user_cell.row + index,
-                    indexes.total_cell.col_int,
-                    data.total,
-                    index,
-                    shifts_amount,
-                ),
-                self._create_cell_penalties(
-                    indexes.first_user_cell.row + index,
-                    indexes.penalties.col_int,
-                    shifts,
-                ),
-            ]
-            percent = UpPercent(
-                shifts, indexes.first_user_cell.row + index, indexes.percent.col_int
-            ).calculate()
-            if percent:
-                user_cells.append(percent)
+            user_cells = self._fill_user_cells(indexes, data, index, shifts)
             cells.extend(user_cells)
-        # print(cells)
         await self._gs.update_cells(cells)
+
+    def _fill_user_cells(
+        self, indexes: Indexes, data: Data, user_row_idx: int, shifts: dict[int, Shift]
+    ) -> list[Cell]:
+        shifts_amount = len(shifts)
+        user_cells = [
+            self._create_cell_amount_shifts(
+                indexes.first_user_cell.row + user_row_idx,
+                indexes.week_cell.col_int,
+                data.week,
+                user_row_idx,
+                shifts_amount,
+            ),
+            self._create_cell_amount_shifts(
+                indexes.first_user_cell.row + user_row_idx,
+                indexes.month_cell.col_int,
+                data.month,
+                user_row_idx,
+                shifts_amount,
+            ),
+            self._create_cell_amount_shifts(
+                indexes.first_user_cell.row + user_row_idx,
+                indexes.total_cell.col_int,
+                data.total,
+                user_row_idx,
+                shifts_amount,
+            ),
+            self._create_cell_penalties(
+                indexes.first_user_cell.row + user_row_idx,
+                indexes.penalties.col_int,
+                shifts,
+            ),
+        ]
+        percent_calculate = UpPercent(
+            data.final_percent[user_row_idx],
+            shifts,
+            indexes.first_user_cell.row + user_row_idx,
+            indexes.percent.col_int,
+        )
+        percent = percent_calculate.calculate()
+        if percent:
+            user_cells.append(percent)
+        return user_cells
 
     @staticmethod
     def _create_cell_amount_shifts(
-        row: int, col: int, data: list[str], index: int, shifts: int
+        row: int, col: int, data: list[str], index: int, shifts_amount: int
     ) -> Cell:
         try:
             old_value = int(data[index])
         except (IndexError, ValueError):
             old_value = ""
-        value = old_value + shifts if old_value else shifts
+        value = old_value + shifts_amount if old_value else shifts_amount
         return Cell(row=row, col=col, value=value)  # type: ignore[]
 
     @staticmethod
@@ -150,6 +161,7 @@ class ShiftStatistic:
             await self._dao.table_index_dao.find_one(value=TableIndexes.TOTAL_SHIFTS),
             await self._dao.table_index_dao.find_one(value=TableIndexes.PENALTIES_DOWN),
             await self._dao.table_index_dao.find_one(value=TableIndexes.PERCENT),
+            await self._dao.table_index_dao.find_one(value=TableIndexes.FINAL_PERCENT),
             first_cell.col_name,
             last_cell.col_name,
         )
@@ -190,26 +202,33 @@ class ShiftStatistic:
         shifts = await self._gs.get_values_by_rows(
             f"{indexes.first_shift_col}{first_row}:{indexes.last_shift_col}{last_row}"
         )
-        return Data(week[0], month[0], total[0], penalties[0], shifts)
+        final_percent = await self._gs.get_values_by_columns(
+            f"{indexes.final_percent.col}{first_row}:{indexes.final_percent.col}{last_row}"
+        )
+        return Data(week[0], month[0], total[0], penalties[0], final_percent[0], shifts)
 
 
 class UpPercent:
     """Класс подсчета увеличенного процента."""
 
-    def __init__(self, shifts: dict[int, Shift], row: int, col: int) -> None:
+    def __init__(
+        self, final_percent: str, shifts: dict[int, Shift], row: int, col: int
+    ) -> None:
         self._shifts = shifts
+        self._final_percent = final_percent
         self._row = row
         self._col = col
 
     def calculate(self) -> Cell | None:
         """Подсчет процента."""
-        percent = self._count_percent()
-        if percent:
-            return Cell(self._row, self._col, percent)  # type: ignore[]
+        expected_percent = self._get_expected_percent()
+        if expected_percent:
+            shortfall_percent = self._get_shortfall_percent(expected_percent)
+            return Cell(self._row, self._col, shortfall_percent)  # type: ignore[]
         return None
 
-    def _count_percent(self) -> int | None:
-        """Подсчет процента."""
+    def _get_expected_percent(self) -> int | None:
+        """Подсчет ожидаемого процента."""
         salon_shifts = self._shifts_on_salon()
         shifts_sum = sum(salon_shifts.values())
         percent = None
@@ -224,6 +243,21 @@ class UpPercent:
         else:
             percent = None
         return percent
+
+    def _get_shortfall_percent(self, expected_percent: int) -> float | str:
+        """Подсчет нехватки процента.
+
+        Из ожидаемого процента вычитаем итоговый, если процент больше нуля,
+        то возвращаем его.
+        """
+        try:
+            final_percent = float(self._final_percent.replace(",", "."))
+        except ValueError:
+            return ""
+        shortfall_percent = expected_percent - final_percent
+        if shortfall_percent <= 0:
+            return ""
+        return shortfall_percent
 
     def _shifts_on_salon(self) -> dict[str, int]:
         """Подсчитывает кол-во смен в салонах.

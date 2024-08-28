@@ -9,6 +9,7 @@ class TableIndexes(StrEnum):
     SHIFTS_MONTH = "shifts_on_month"
     TOTAL_SHIFTS = "total_shifts"
     PERCENT = "percent"
+    FINAL_PERCENT = "final_percent"
     USERS_START = "users_start"
     USERS_END = "users_end"
 
