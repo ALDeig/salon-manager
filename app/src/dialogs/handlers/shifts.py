@@ -159,9 +159,10 @@ async def btn_all_shifts(call: CallbackQuery, msg: Message, dao: HolderDao):
     await msg.answer("Собираю данные")
     shift_manager = ShiftManager(cast(str, call.from_user.username), dao)
     shifts = await shift_manager.get_all_shifts()
-    text = shift_texts.all_shifts(shifts)
-    if not text:
+    texts = shift_texts.all_shifts(shifts)
+    if not texts:
         await msg.answer("Смен нет")
     else:
-        await msg.answer(text)
+        for text in texts:
+            await msg.answer(text)
     await msg.answer("Меню", reply_markup=kb_user_menu())

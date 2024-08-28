@@ -120,8 +120,9 @@ async def btn_all_shifts(msg: Message, dao: HolderDao, state: FSMContext):
     await state.clear()
     shift_manager = ShiftManager(cast(str, msg.chat.username), dao)
     shifts = await shift_manager.get_all_shifts()
-    text = shift_texts.all_shifts(shifts)
-    if not text:
+    texts = shift_texts.all_shifts(shifts)
+    if not texts:
         await msg.answer("Смен нет")
         return
-    await msg.answer(text)
+    for text in texts:
+        await msg.answer(text)
