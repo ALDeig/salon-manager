@@ -77,7 +77,7 @@ class ShiftStatistic:
             user_cells = self._fill_user_cells(indexes, data, index, shifts)
             # print(user_cells)
             cells.extend(user_cells)
-        # await self._gs.update_cells(cells)
+        await self._gs.update_cells(cells)
 
     def _fill_user_cells(
         self, indexes: Indexes, data: Data, user_row_idx: int, shifts: dict[int, Shift]
@@ -105,11 +105,11 @@ class ShiftStatistic:
                 user_row_idx,
                 shifts_amount,
             ),
-            self._create_cell_penalties(
-                indexes.first_user_cell.row + user_row_idx,
-                indexes.penalties.col_int,
-                shifts,
-            ),
+            # self._create_cell_penalties(
+            #     indexes.first_user_cell.row + user_row_idx,
+            #     indexes.penalties.col_int,
+            #     shifts,
+            # ),
         ]
         percent_calculate = UpPercent(
             data.final_percent[user_row_idx],
