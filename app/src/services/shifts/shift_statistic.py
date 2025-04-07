@@ -75,8 +75,9 @@ class ShiftStatistic:
             if not shifts:
                 continue
             user_cells = self._fill_user_cells(indexes, data, index, shifts)
+            # print(user_cells)
             cells.extend(user_cells)
-        await self._gs.update_cells(cells)
+        # await self._gs.update_cells(cells)
 
     def _fill_user_cells(
         self, indexes: Indexes, data: Data, user_row_idx: int, shifts: dict[int, Shift]
@@ -224,6 +225,7 @@ class UpPercent:
         expected_percent = self._get_expected_percent()
         if expected_percent:
             shortfall_percent = self._get_shortfall_percent(expected_percent)
+            # print(self._row, shortfall_percent)
             return Cell(self._row, self._col, shortfall_percent)  # type: ignore[]
         return None
 

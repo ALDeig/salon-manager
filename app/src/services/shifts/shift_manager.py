@@ -20,6 +20,7 @@ from app.src.services.exceptions import (
 )
 from app.src.services.gsheet.creds import get_worksheet
 from app.src.services.gsheet.sheet import CellData, GSheet
+from app.src.services.salons import SalonsManager
 from app.src.services.shifts.consts import (
     COLORS,
     COLS_ON_SALON,
@@ -48,6 +49,7 @@ class ShiftManager:
     def __init__(self, username: str, dao: HolderDao) -> None:
         self._dao = dao
         self._username = username
+        self._salon_manager = SalonsManager(dao)
 
     async def add_entry(self, salon: str, day: str, time: str) -> None:
         """Добавляет смену в таблицу."""
@@ -57,7 +59,7 @@ class ShiftManager:
             day_cell = await gs.find_cell(day)
         except CellNotFoundError as er:
             raise WritingShiftError from er
-        salons = await self._dao.salon_dao.find_all_by_order()
+        salons = await self._salon_manager.get_salons()
         last_cell = await gs.get_cell_by_coordinates(
             row=user_cell.row,
             col=get_last_column_day(day_cell.col, len(salons)),
@@ -81,7 +83,7 @@ class ShiftManager:
         user_cell = await gs.find_cell(f"@{user.username}")
         days = get_days_month()
         first_cell = await gs.find_cell(days[0])
-        salons = await self._dao.salon_dao.find_all_by_order()
+        salons = await self._salon_manager.get_salons()
         cells = await gs.get_cells(
             f"{first_cell.col_name}{user_cell.row}:{user_cell.row}"
         )
@@ -107,7 +109,7 @@ class ShiftManager:
         user_end_row = await self._dao.table_index_dao.find_one(
             value=TableIndexes.USERS_END
         )
-        salons = await self._dao.salon_dao.find_all_by_order()
+        salons = await self._salon_manager.get_salons()
         days = get_days_from_today_to_next_week()
         first_cell = await gs.find_cell(days[0])
         # last_cell = await gs.get_cell_by_coordinates(
@@ -165,6 +167,7 @@ def calculate_user_shifts(
                     idx_day * (salons_amount * COLS_ON_SALON)
                     + idx_salon * COLS_ON_SALON
                 ]
+                print(cell)
             except IndexError:
                 return result
             if cell.value:

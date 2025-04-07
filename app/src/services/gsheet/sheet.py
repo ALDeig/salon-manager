@@ -51,7 +51,7 @@ class GSheet:
             value_render_option=ValueRenderOption.formatted,
         )
 
-    async def get_cells(self, *args, **kwargs) -> list[Cell]:  # noqa: ANN002
+    async def get_cells(self, *args: str, **kwargs: int) -> list[Cell]:
         return await self._ws.range(*args, **kwargs)
 
     async def find_cell(self, value: str) -> CellData:

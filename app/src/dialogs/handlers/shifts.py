@@ -94,9 +94,9 @@ async def btn_select_time(
     await msg.answer("Записываю смену...")
     data = await state.get_data()
     salon, day, shift_time = data["salon"], data["day"], call.data
-    shift_manager = ShiftManager(cast(str, call.from_user.username), dao)
+    shift_mng = ShiftManager(cast("str", call.from_user.username), dao)
     try:
-        await shift_manager.add_entry(salon, day, shift_time)
+        await shift_mng.add_entry(salon, day, shift_time)
     except ShiftIsExistError:
         await msg.answer(shift_texts.SHIFT_IS_EXIST)
     except WritingShiftError:
@@ -122,7 +122,9 @@ async def btn_show_my_shifts(
     except Exception as er:
         logger.warning(er)
     await msg.answer("Собираю данные")
-    shifts = await ShiftManager(cast(str, call.from_user.username), dao).get_my_shifts()
+    shift_mng = ShiftManager(cast("str", call.from_user.username), dao)
+    shifts = await shift_mng.get_my_shifts()
+    # shifts = await ShiftManager(cast("str", call.from_user.username), dao).get_my_shifts()
     if not shifts:
         await msg.answer("Смен нет")
     else:
@@ -141,7 +143,7 @@ async def btn_shift_remove(call: CallbackQuery, msg: Message, dao: HolderDao):
     if call.data is None:
         return
     _, row, col, label = call.data.split(":")
-    await ShiftManager(cast(str, call.from_user.username), dao).remove_shift(
+    await ShiftManager(cast("str", call.from_user.username), dao).remove_shift(
         int(row), int(col), label
     )
     await msg.answer(shift_texts.SHIFT_IS_REMOVE)
@@ -157,7 +159,7 @@ async def btn_all_shifts(call: CallbackQuery, msg: Message, dao: HolderDao):
     except Exception as er:
         logger.warning(er)
     await msg.answer("Собираю данные")
-    shift_manager = ShiftManager(cast(str, call.from_user.username), dao)
+    shift_manager = ShiftManager(cast("str", call.from_user.username), dao)
     shifts = await shift_manager.get_all_shifts()
     texts = shift_texts.all_shifts(shifts)
     if not texts:

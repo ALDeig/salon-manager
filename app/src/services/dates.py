@@ -20,6 +20,7 @@ def get_monday_next_week() -> date:
 
 
 def get_days_from_today_to_next_week() -> list[str]:
+    """Возвращает список дат от текущей даты до следующей недели."""
     today = date.today()  # noqa: DTZ011
     next_week = get_monday_next_week()
     days_amount = (next_week + timedelta(7) - today).days
@@ -38,8 +39,7 @@ def write_is_avalibale() -> bool:
     """Проверяет, доступна ли запись.
     Запись доступна в пятницу и субботу.
     """
-    week_day = date.today().weekday()  # noqa: DTZ011
-    return week_day in {4, 5}
+    return date.today().weekday() in {4, 5}  # noqa: DTZ011
 
 
 def get_mondey_current_week() -> date:
