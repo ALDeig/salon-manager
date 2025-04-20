@@ -118,7 +118,7 @@ async def btn_remove_salon(call: CallbackQuery, msg: Message, dao: HolderDao):
 async def btn_all_shifts(msg: Message, dao: HolderDao, state: FSMContext):
     await msg.answer("Собираю данные")
     await state.clear()
-    shift_manager = ShiftManager(cast(str, msg.chat.username), dao)
+    shift_manager = ShiftManager(cast("str", msg.chat.username), dao)
     shifts = await shift_manager.get_all_shifts()
     texts = shift_texts.all_shifts(shifts)
     if not texts:

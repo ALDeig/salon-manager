@@ -49,9 +49,8 @@ LOGGING_CONFIG = {
             "formatter": "default_formatter",
             "filename": "logs/app.log",
             "maxBytes": 1024 * 1024 * 10,
-            "backupCount": 3
+            "backupCount": 3,
         },
-
     },
     "loggers": {
         "root": {
