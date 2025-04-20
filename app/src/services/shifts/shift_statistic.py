@@ -33,7 +33,7 @@ class Data:
     week: list[str]
     month: list[str]
     total: list[str]
-    penalties: list[str]
+    # penalties: list[str]
     final_percent: list[str]
     shifts: list[list[str]]
 
@@ -197,16 +197,16 @@ class ShiftStatistic:
         total = await self._gs.get_values_by_columns(
             f"{indexes.total_cell.col}{first_row}:{indexes.total_cell.col}{last_row}"
         )
-        penalties = await self._gs.get_values_by_columns(
-            f"{indexes.penalties.col}{first_row}:{indexes.penalties.col}{last_row}"
-        )
+        # penalties = await self._gs.get_values_by_columns(
+        #     f"{indexes.penalties.col}{first_row}:{indexes.penalties.col}{last_row}"
+        # )
         shifts = await self._gs.get_values_by_rows(
             f"{indexes.first_shift_col}{first_row}:{indexes.last_shift_col}{last_row}"
         )
         final_percent = await self._gs.get_values_by_columns(
             f"{indexes.final_percent.col}{first_row}:{indexes.final_percent.col}{last_row}"
         )
-        return Data(week[0], month[0], total[0], penalties[0], final_percent[0], shifts)
+        return Data(week[0], month[0], total[0], final_percent[0], shifts)
 
 
 class UpPercent:
