@@ -46,3 +46,25 @@ def get_mondey_current_week() -> date:
     """Возвращает дату понедельника текущей недели."""
     today = date.today()  # noqa: DTZ011
     return today - timedelta(days=today.weekday())
+
+
+def get_weekday_from_date_string(date_str: str) -> int:
+    """Определяет день недели по строке с датой в формате 'dd.mm'.
+
+    Args:
+        date_str: Дата в формате 'dd.mm'
+
+    Returns:
+        int: День недели (0-понедельник, 1-вторник, ..., 6-воскресенье)
+    """
+    day, month = map(int, date_str.split('.'))
+    current_year = date.today().year  # noqa: DTZ011
+
+    # Пробуем текущий год
+    try:
+        date_obj = date(current_year, month, day)
+    except ValueError:
+        # Если не получилось (например, дата в следующем году), пробуем следующий год
+        date_obj = date(current_year + 1, month, day)
+
+    return date_obj.weekday()

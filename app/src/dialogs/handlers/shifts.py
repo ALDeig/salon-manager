@@ -15,7 +15,11 @@ from aiogram.types import CallbackQuery, Message
 from app.src.dialogs.keyboards.shift import kb_select_item
 from app.src.dialogs.keyboards.user import kb_user_menu
 from app.src.dialogs.states import ShiftEntry
-from app.src.services.dates import get_dates_next_week, write_is_avalibale
+from app.src.services.dates import (
+    get_dates_next_week,
+    get_weekday_from_date_string,
+    write_is_avalibale,
+)
 from app.src.services.db.dao.holder import HolderDao
 from app.src.services.exceptions import (
     SalonNotFoundError,
@@ -79,7 +83,17 @@ async def btn_select_day(
         await msg.answer(shift_texts.SALON_TIMES_ERROR)
         await state.clear()
         return
-    await msg.answer(dates_text.select_time, reply_markup=kb_select_item(salon.shifts))
+
+    # Определяем день недели выбранной даты
+    weekday = get_weekday_from_date_string(call.data)
+    available_shifts = list(salon.shifts)
+
+    # Четверг (3), пятница (4), суббота (5) - убираем смену "22-7"
+    # В эти дни ночные смены должны быть только до 11 утра
+    if weekday in {3, 4, 5} and "22-7" in available_shifts:
+        available_shifts.remove("22-7")
+
+    await msg.answer(dates_text.select_time, reply_markup=kb_select_item(available_shifts))
     await state.set_state(ShiftEntry.time)
 
 
