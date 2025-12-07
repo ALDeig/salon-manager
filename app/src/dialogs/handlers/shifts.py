@@ -92,8 +92,11 @@ async def btn_select_day(
     # В эти дни ночные смены должны быть только до 11 утра
     if weekday in {3, 4, 5} and "22-7" in available_shifts:
         available_shifts.remove("22-7")
+        available_shifts.append("22-11")
 
-    await msg.answer(dates_text.select_time, reply_markup=kb_select_item(available_shifts))
+    await msg.answer(
+        dates_text.select_time, reply_markup=kb_select_item(available_shifts)
+    )
     await state.set_state(ShiftEntry.time)
 
 
